@@ -1,0 +1,36 @@
+#! usr/bin/env python3
+
+import open3d as o3d
+import numpy as np
+
+seg_name='/home/utk/Perception/data/sets/nuscenes/lidarseg/v1.0-mini/4484110755904050a880043268149497_lidarseg.bin'
+seg=np.fromfile(seg_name, dtype=np.uint8)
+
+pcd_name='/home/utk/Perception/data/sets/nuscenes/samples/LIDAR_TOP/n008-2018-08-28-16-43-51-0400__LIDAR_TOP__1535489296047917.pcd.bin'
+scan=np.fromfile(pcd_name, dtype=np.float32)
+points = scan.reshape((-1, 5))[:, :4]
+intensity = points[:,3]
+#print(intensity)
+
+color = np.zeros([len(intensity), 3])
+for i in range(len(intensity)):
+    if intensity[i] < 20:
+        color[i, 0] = intensity[i]/32
+        color[i, 1] = intensity[i]/32
+        color[i, 2] = intensity[i]/16
+    elif intensity[i] > 20 and intensity[i] < 30:
+        color[i, 0] = intensity[i]
+        color[i, 1] = intensity[i]/64
+        color[i, 2] = intensity[i]/64
+    else:
+        color[i, 0] = intensity[i]/32
+        color[i, 1] = intensity[i]/32
+        color[i, 2] = intensity[i]/4     
+
+
+#print(color)
+pcd = o3d.geometry.PointCloud()
+pcd.points = o3d.utility.Vector3dVector(points[:, :3])
+pcd.colors = o3d.utility.Vector3dVector(color)
+
+o3d.visualization.draw_geometries([pcd])
